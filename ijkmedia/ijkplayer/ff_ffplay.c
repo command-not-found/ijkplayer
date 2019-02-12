@@ -876,7 +876,9 @@ static void video_image_display2(FFPlayer *ffp)
     Frame *sp = NULL;
 
     vp = frame_queue_peek_last(&is->pictq);
-
+    
+    av_log(NULL, AV_LOG_WARNING, "zdg: picture info, w = %d, h = %d, planes = %d", vp->bmp->w, vp->bmp->h, vp->bmp->planes);
+    
     if (vp->bmp) {
         if (is->subtitle_st) {
             if (frame_queue_nb_remaining(&is->subpq) > 0) {
@@ -1067,6 +1069,7 @@ static void video_display2(FFPlayer *ffp)
     VideoState *is = ffp->is;
     if (is->video_st)
         video_image_display2(ffp);
+    av_log(NULL, AV_LOG_WARNING, "zdg: alloc picture");
 }
 
 static double get_clock(Clock *c)
@@ -3330,7 +3333,7 @@ static int read_thread(void *arg)
     ffp->prepared = true;
     ffp_notify_msg1(ffp, FFP_MSG_PREPARED);
     if (!ffp->render_wait_start && !ffp->start_on_prepared) {
-        while (is->pause_req && !is->abort_request) {
+        while (is->pause_req && !is->abort_request && 0) {
             SDL_Delay(20);
         }
     }
@@ -3514,6 +3517,7 @@ static int read_thread(void *arg)
         pkt->flags = 0;
         ret = av_read_frame(ic, pkt);
         if (ret < 0) {
+//            av_log(NULL, AV_LOG_WARNING,"#zdg: prepare buffering .....");
             int pb_eof = 0;
             int pb_error = 0;
             if ((ret == AVERROR_EOF || avio_feof(ic->pb)) && !is->eof) {
@@ -3764,8 +3768,9 @@ static int video_refresh_thread(void *arg)
         if (remaining_time > 0.0)
             av_usleep((int)(int64_t)(remaining_time * 1000000.0));
         remaining_time = REFRESH_RATE;
-        if (is->show_mode != SHOW_MODE_NONE && (!is->paused || is->force_refresh))
+        if (is->show_mode != SHOW_MODE_NONE && (!is->paused || is->force_refresh)) {
             video_refresh(ffp, &remaining_time);
+        }
     }
 
     return 0;

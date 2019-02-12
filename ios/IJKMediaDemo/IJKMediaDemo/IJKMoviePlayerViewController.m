@@ -79,7 +79,13 @@
     self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.player.view.frame = self.view.bounds;
     self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
-    self.player.shouldAutoplay = YES;
+    self.player.shouldAutoplay = NO;
+    
+    
+    self.player1 = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
+    self.player1.view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    self.player1.scalingMode = IJKMPMovieScalingModeAspectFit;
+    self.player1.shouldAutoplay = NO;
 
     self.view.autoresizesSubviews = YES;
     [self.view addSubview:self.player.view];
@@ -94,6 +100,7 @@
     [self installMovieNotificationObservers];
 
     [self.player prepareToPlay];
+    [self.player1 prepareToPlay];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
