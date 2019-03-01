@@ -74,6 +74,7 @@ static const char *kIJKFFRequiredFFmpegVersion = "ff3.4--ijk0.8.7--20180103--001
     IjkIOAppCacheStatistic _cacheStat;
     NSTimer *_hudTimer;
     IJKSDLHudViewController *_hudViewController;
+    NSLock *_stop_lock;
 }
 
 @synthesize view = _view;
@@ -187,6 +188,8 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
 
         if (options == nil)
             options = [IJKFFOptions optionsByDefault];
+        
+        _stop_lock = [[NSLock alloc] init];
 
         // IJKFFIOStatRegister(IJKFFIOStatDebugCallback);
         // IJKFFIOStatCompleteRegister(IJKFFIOStatCompleteDebugCallback);
@@ -439,7 +442,9 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
     [self setScreenOn:NO];
 
     [self stopHudTimer];
+    [_stop_lock lock];
     ijkmp_stop(_mediaPlayer);
+    [_stop_lock unlock];
 }
 
 - (BOOL)isPlaying
@@ -597,7 +602,9 @@ inline static int getPlayerOption(IJKFFOptionCategory category)
     __unused id weakPlayer = (__bridge_transfer IJKFFMoviePlayerController*)ijkmp_set_weak_thiz(_mediaPlayer, NULL);
     __unused id weakHolder = (__bridge_transfer IJKWeakHolder*)ijkmp_set_inject_opaque(_mediaPlayer, NULL);
     __unused id weakijkHolder = (__bridge_transfer IJKWeakHolder*)ijkmp_set_ijkio_inject_opaque(_mediaPlayer, NULL);
+    [_stop_lock lock];
     ijkmp_dec_ref_p(&_mediaPlayer);
+    [_stop_lock unlock];
 
     [self didShutdown];
 }

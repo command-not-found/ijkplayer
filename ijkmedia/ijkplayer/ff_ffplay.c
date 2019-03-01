@@ -877,7 +877,7 @@ static void video_image_display2(FFPlayer *ffp)
 
     vp = frame_queue_peek_last(&is->pictq);
     
-    av_log(NULL, AV_LOG_WARNING, "zdg: picture info, w = %d, h = %d, planes = %d", vp->bmp->w, vp->bmp->h, vp->bmp->planes);
+//    av_log(NULL, AV_LOG_WARNING, "zdg: picture info, w = %d, h = %d, planes = %d", vp->bmp->w, vp->bmp->h, vp->bmp->planes);
     
     if (vp->bmp) {
         if (is->subtitle_st) {
@@ -1069,7 +1069,7 @@ static void video_display2(FFPlayer *ffp)
     VideoState *is = ffp->is;
     if (is->video_st)
         video_image_display2(ffp);
-    av_log(NULL, AV_LOG_WARNING, "zdg: alloc picture");
+//    av_log(NULL, AV_LOG_WARNING, "zdg: alloc picture");
 }
 
 static double get_clock(Clock *c)
