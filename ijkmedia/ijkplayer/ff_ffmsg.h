@@ -42,6 +42,8 @@
 #define FFP_MSG_VIDEO_SEEK_RENDERING_START  410
 #define FFP_MSG_AUDIO_SEEK_RENDERING_START  411
 
+#define FFP_MSG_VIDEO_CURRENT_SAMPLEBUFFER  415     /* void data = samplebufferref */
+
 #define FFP_MSG_BUFFERING_START             500
 #define FFP_MSG_BUFFERING_END               501
 #define FFP_MSG_BUFFERING_UPDATE            502     /* arg1 = buffering head position in time, arg2 = minimum percent in time or bytes */

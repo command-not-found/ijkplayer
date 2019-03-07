@@ -1215,6 +1215,13 @@ inline static void fillMetaInternal(NSMutableDictionary *meta, IjkMediaMeta *raw
             _isSeekBuffering = 0;
             break;
         }
+        case FFP_MSG_VIDEO_CURRENT_SAMPLEBUFFER: {
+            CVPixelBufferRef *buffer = (avmsg->obj);
+            if (_delegate != nil && [_delegate respondsToSelector:@selector(currentPixelBuffer:)]) {
+                [_delegate currentPixelBuffer:*buffer];
+            }
+            CVPixelBufferRelease(*buffer);
+        }
         case FFP_MSG_BUFFERING_UPDATE:
             _bufferingPosition = avmsg->arg1;
             _bufferingProgress = avmsg->arg2;

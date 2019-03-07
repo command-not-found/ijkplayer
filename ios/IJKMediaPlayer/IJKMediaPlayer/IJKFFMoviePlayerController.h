@@ -25,6 +25,7 @@
 #import "IJKFFMonitor.h"
 #import "IJKFFOptions.h"
 #import "IJKSDLGLViewProtocol.h"
+#import <AVFoundation/AVFoundation.h>
 
 // media meta
 #define k_IJKM_KEY_FORMAT         @"format"
@@ -70,6 +71,14 @@ typedef enum IJKLogLevel {
     k_IJK_LOG_SILENT  = 8,
 } IJKLogLevel;
 
+@protocol IJKFFMoviePlayerControllerDelegate <NSObject>
+
+@optional
+- (void)currentPixelBuffer:(CVPixelBufferRef )sampleBuffer;
+//- (void)download;
+
+@end
+
 @interface IJKFFMoviePlayerController : NSObject <IJKMediaPlayback>
 
 - (id)initWithContentURL:(NSURL *)aUrl
@@ -108,6 +117,7 @@ typedef enum IJKLogLevel {
 @property(nonatomic, readonly) CGFloat fpsInMeta;
 @property(nonatomic, readonly) CGFloat fpsAtOutput;
 @property(nonatomic) BOOL shouldShowHudView;
+@property(nonatomic, weak) id<IJKFFMoviePlayerControllerDelegate> delegate;
 
 - (void)setOptionValue:(NSString *)value
                 forKey:(NSString *)key

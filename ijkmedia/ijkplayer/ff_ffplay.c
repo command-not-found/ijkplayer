@@ -1234,6 +1234,10 @@ static void toggle_pause_l(FFPlayer *ffp, int pause_on)
 static void toggle_pause(FFPlayer *ffp, int pause_on)
 {
     SDL_LockMutex(ffp->is->play_mutex);
+    if (pause_on == 0) {
+        //zdg: 更新buffer大小
+        ffp->dcc.max_buffer_size = 15 * 1024 * 1024;
+    }
     toggle_pause_l(ffp, pause_on);
     SDL_UnlockMutex(ffp->is->play_mutex);
 }

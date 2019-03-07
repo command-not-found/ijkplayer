@@ -80,6 +80,9 @@
     self.player.view.frame = self.view.bounds;
     self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
     self.player.shouldAutoplay = NO;
+    [self.player prepareToPlay];
+    [self.player play];
+    self.player.shouldAutoplay = YES;
     
     
     self.player1 = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
@@ -92,6 +95,12 @@
     [self.view addSubview:self.mediaControl];
 
     self.mediaControl.delegatePlayer = self.player;
+    
+//    while (![self.player isPlaying]) {
+//        [self.player prepareToPlay];
+//        [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.03]];
+//        [self.player play];
+//    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -201,6 +210,12 @@
 
     if ((loadState & IJKMPMovieLoadStatePlaythroughOK) != 0) {
         NSLog(@"loadStateDidChange: IJKMPMovieLoadStatePlaythroughOK: %d\n", (int)loadState);
+        
+        if (self.player.shouldAutoplay == YES) {
+            [self.player play];
+        }
+        
+        
     } else if ((loadState & IJKMPMovieLoadStateStalled) != 0) {
         NSLog(@"loadStateDidChange: IJKMPMovieLoadStateStalled: %d\n", (int)loadState);
     } else {
@@ -277,6 +292,11 @@
             break;
         }
     }
+}
+
+- (void)currentPixelBuffer:(CVPixelBufferRef )sampleBuffer
+{
+    
 }
 
 #pragma mark Install Movie Notifications

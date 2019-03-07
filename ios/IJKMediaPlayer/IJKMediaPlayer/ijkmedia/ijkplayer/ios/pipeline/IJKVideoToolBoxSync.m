@@ -218,7 +218,9 @@ static bool GetVTBPicture(Ijk_VideoToolBox_Opaque* context, AVFrame* pVTBPicture
     volatile sort_queue *sort_queue = context->m_sort_queue;
     *pVTBPicture        = sort_queue->pic;
     pVTBPicture->opaque = CVBufferRetain(sort_queue->pic.opaque);
-
+    
+    CVPixelBufferRef buffer = CVPixelBufferRetain(sort_queue->pic.opaque);
+    ffp_notify_msg4(context->ffp, FFP_MSG_VIDEO_CURRENT_SAMPLEBUFFER, 0, 0, &buffer, sizeof(buffer));
     pthread_mutex_unlock(&context->m_queue_mutex);
 
     return true;
@@ -586,8 +588,6 @@ static int decode_video_internal(Ijk_VideoToolBox_Opaque* context, AVCodecContex
         }
         goto failed;
     }
-
-
 
     if (sample_buff) {
         CFRelease(sample_buff);
