@@ -83,12 +83,19 @@
     [self.player prepareToPlay];
     [self.player play];
     self.player.shouldAutoplay = YES;
+    NSLog(@"zdg: video loading begin....");
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        self.player.view.frame = self.view.bounds;
+        self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
+    });
     
     
-    self.player1 = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
-    self.player1.view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    self.player1.scalingMode = IJKMPMovieScalingModeAspectFit;
-    self.player1.shouldAutoplay = NO;
+//    self.player1 = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
+//    self.player1.view.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+//    self.player1.scalingMode = IJKMPMovieScalingModeAspectFit;
+//    self.player1.shouldAutoplay = NO;
 
     self.view.autoresizesSubviews = YES;
     [self.view addSubview:self.player.view];
@@ -207,15 +214,18 @@
     //    MPMovieLoadStateStalled        = 1 << 2, // Playback will be automatically paused in this state, if started
 
     IJKMPMovieLoadState loadState = _player.loadState;
+//    static int x = 0;
 
     if ((loadState & IJKMPMovieLoadStatePlaythroughOK) != 0) {
         NSLog(@"loadStateDidChange: IJKMPMovieLoadStatePlaythroughOK: %d\n", (int)loadState);
         
         if (self.player.shouldAutoplay == YES) {
-            [self.player play];
+//            [self.player play];
+//            if (x == 0) {
+            NSLog(@"zdg: video loading end....");
+//                x ++;
+//            }
         }
-        
-        
     } else if ((loadState & IJKMPMovieLoadStateStalled) != 0) {
         NSLog(@"loadStateDidChange: IJKMPMovieLoadStateStalled: %d\n", (int)loadState);
     } else {
@@ -272,6 +282,7 @@
         }
         case IJKMPMoviePlaybackStatePlaying: {
             NSLog(@"IJKMPMoviePlayBackStateDidChange %d: playing", (int)_player.playbackState);
+            NSLog(@"zdg video begin playing....");
             break;
         }
         case IJKMPMoviePlaybackStatePaused: {

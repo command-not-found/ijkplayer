@@ -142,7 +142,15 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
 
 - (CAEAGLLayer *)eaglLayer
 {
-    return (CAEAGLLayer*) self.layer;
+    if ([NSThread isMainThread]) {
+        return (CAEAGLLayer*) self.layer;
+    } else {
+        __block CAEAGLLayer *layer = nil;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            layer = (CAEAGLLayer*) self.layer;
+        });
+        return layer;
+    }
 }
 
 - (BOOL)setupGL
@@ -203,7 +211,14 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
         case IJKSDLGLViewApplicationBackgroundState:
             return NO;
         default: {
-            UIApplicationState appState = [UIApplication sharedApplication].applicationState;
+            __block UIApplicationState appState = nil;
+            if ([NSThread isMainThread]) {
+                appState = [UIApplication sharedApplication].applicationState;
+            } else {
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    appState = [UIApplication sharedApplication].applicationState;
+                });
+            }
             switch (appState) {
                 case UIApplicationStateActive:
                     return YES;
@@ -378,7 +393,13 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
         _isRenderBufferInvalidated = NO;
 
         glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
-        [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+        if ([NSThread isMainThread]) {
+            [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+        } else {
+            dispatch_sync(dispatch_get_main_queue(), ^{
+                [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+            });
+        }
         glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &_backingWidth);
         glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
         IJK_GLES2_Renderer_setGravity(_renderer, _rendererGravity, _backingWidth, _backingHeight);
