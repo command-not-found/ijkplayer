@@ -442,9 +442,9 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
     [self setScreenOn:NO];
 
     [self stopHudTimer];
-    [_stop_lock lock];
+//    [_stop_lock lock];
     ijkmp_stop(_mediaPlayer);
-    [_stop_lock unlock];
+//    [_stop_lock unlock];
 }
 
 - (BOOL)isPlaying
@@ -602,7 +602,7 @@ inline static int getPlayerOption(IJKFFOptionCategory category)
     __unused id weakPlayer = (__bridge_transfer IJKFFMoviePlayerController*)ijkmp_set_weak_thiz(_mediaPlayer, NULL);
     __unused id weakHolder = (__bridge_transfer IJKWeakHolder*)ijkmp_set_inject_opaque(_mediaPlayer, NULL);
     __unused id weakijkHolder = (__bridge_transfer IJKWeakHolder*)ijkmp_set_ijkio_inject_opaque(_mediaPlayer, NULL);
-    [_stop_lock lock];
+//    [_stop_lock lock];
     ijkmp_dec_ref_p(&_mediaPlayer);
     [_stop_lock unlock];
 
