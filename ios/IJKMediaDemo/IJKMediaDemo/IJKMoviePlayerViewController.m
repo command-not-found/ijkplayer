@@ -74,21 +74,19 @@
     // [IJKFFMoviePlayerController checkIfPlayerVersionMatch:YES major:1 minor:0 micro:0];
 
     IJKFFOptions *options = [IJKFFOptions optionsByDefault];
-
+    
     self.player = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
     self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.player.view.frame = self.view.bounds;
     self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
-    self.player.shouldAutoplay = NO;
+    self.player.shouldAutoplay = YES;
     [self.player prepareToPlay];
     [self.player play];
     self.player.shouldAutoplay = YES;
     NSLog(@"zdg: video loading begin....");
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-        self.player.view.frame = self.view.bounds;
-        self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
+        
     });
     
     
@@ -108,6 +106,39 @@
 //        [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.03]];
 //        [self.player play];
 //    }
+    __weak __typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf.player shutdown];
+        [weakSelf circlePlay];
+    });
+}
+
+- (void) circlePlay {
+    IJKFFOptions *options = [IJKFFOptions optionsByDefault];
+    self.player = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
+    self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    self.player.view.frame = self.view.bounds;
+    self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
+    self.player.shouldAutoplay = YES;
+    [self.player prepareToPlay];
+    [self.player play];
+    self.player.shouldAutoplay = YES;
+    NSLog(@"zdg: video loading begin....");
+    self.view.autoresizesSubviews = YES;
+    [self.view addSubview:self.player.view];
+    [self.view addSubview:self.mediaControl];
+    
+    self.mediaControl.delegatePlayer = self.player;
+    __weak __typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        [weakSelf.player.view removeFromSuperview];
+        [weakSelf.player shutdown];
+        id x = weakSelf.player.view;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [x removeFromSuperview];
+        });
+        [weakSelf circlePlay];
+    });
 }
 
 - (void)viewWillAppear:(BOOL)animated {
