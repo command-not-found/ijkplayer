@@ -132,11 +132,12 @@
     __weak __typeof(self) weakSelf = self;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
 //        [weakSelf.player.view removeFromSuperview];
+        NSLog(@"current time:  %f", [weakSelf.player currentPlaybackTime]);
         [weakSelf.player shutdown];
-        id x = weakSelf.player.view;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [x removeFromSuperview];
-        });
+//        id x = weakSelf.player.view;
+//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//            [x removeFromSuperview];
+//        });
         [weakSelf circlePlay];
     });
 }

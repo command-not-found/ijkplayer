@@ -189,7 +189,7 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
         if (options == nil)
             options = [IJKFFOptions optionsByDefault];
         
-        _stop_lock = [[NSLock alloc] init];
+//        _stop_lock = [[NSLock alloc] init];
 
         // IJKFFIOStatRegister(IJKFFIOStatDebugCallback);
         // IJKFFIOStatCompleteRegister(IJKFFIOStatCompleteDebugCallback);
@@ -219,26 +219,26 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
         _glView = [[IJKSDLGLView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         _glView.isThirdGLView = NO;
         _view = _glView;
-        _hudViewController = [[IJKSDLHudViewController alloc] init];
-        [_hudViewController setRect:_glView.frame];
-        _shouldShowHudView = NO;
-        _hudViewController.tableView.hidden = YES;
-        [_view addSubview:_hudViewController.tableView];
+//        _hudViewController = [[IJKSDLHudViewController alloc] init];
+//        [_hudViewController setRect:_glView.frame];
+//        _shouldShowHudView = NO;
+//        _hudViewController.tableView.hidden = YES;
+//        [_view addSubview:_hudViewController.tableView];
 
-        [self setHudValue:nil forKey:@"scheme"];
-        [self setHudValue:nil forKey:@"host"];
-        [self setHudValue:nil forKey:@"path"];
-        [self setHudValue:nil forKey:@"ip"];
-        [self setHudValue:nil forKey:@"tcp-info"];
-        [self setHudValue:nil forKey:@"http"];
-        [self setHudValue:nil forKey:@"tcp-spd"];
-        [self setHudValue:nil forKey:@"t-prepared"];
-        [self setHudValue:nil forKey:@"t-render"];
-        [self setHudValue:nil forKey:@"t-preroll"];
-        [self setHudValue:nil forKey:@"t-http-open"];
-        [self setHudValue:nil forKey:@"t-http-seek"];
-        
-        self.shouldShowHudView = options.showHudView;
+//        [self setHudValue:nil forKey:@"scheme"];
+//        [self setHudValue:nil forKey:@"host"];
+//        [self setHudValue:nil forKey:@"path"];
+//        [self setHudValue:nil forKey:@"ip"];
+//        [self setHudValue:nil forKey:@"tcp-info"];
+//        [self setHudValue:nil forKey:@"http"];
+//        [self setHudValue:nil forKey:@"tcp-spd"];
+//        [self setHudValue:nil forKey:@"t-prepared"];
+//        [self setHudValue:nil forKey:@"t-render"];
+//        [self setHudValue:nil forKey:@"t-preroll"];
+//        [self setHudValue:nil forKey:@"t-http-open"];
+//        [self setHudValue:nil forKey:@"t-http-seek"];
+//
+//        self.shouldShowHudView = options.showHudView;
 
         ijkmp_ios_set_glview(_mediaPlayer, _glView);
         ijkmp_set_option(_mediaPlayer, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
@@ -604,7 +604,7 @@ inline static int getPlayerOption(IJKFFOptionCategory category)
     __unused id weakijkHolder = (__bridge_transfer IJKWeakHolder*)ijkmp_set_ijkio_inject_opaque(_mediaPlayer, NULL);
 //    [_stop_lock lock];
     ijkmp_dec_ref_p(&_mediaPlayer);
-    [_stop_lock unlock];
+//    [_stop_lock unlock];
 
     [self didShutdown];
 }
@@ -1221,6 +1221,7 @@ inline static void fillMetaInternal(NSMutableDictionary *meta, IjkMediaMeta *raw
                 [_delegate currentPixelBuffer:*buffer];
             }
             CVPixelBufferRelease(*buffer);
+            break;
         }
         case FFP_MSG_BUFFERING_UPDATE:
             _bufferingPosition = avmsg->arg1;
