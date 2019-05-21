@@ -82,11 +82,13 @@
     self.player.shouldAutoplay = YES;
     [self.player prepareToPlay];
     [self.player play];
-    self.player.shouldAutoplay = YES;
-    NSLog(@"zdg: video loading begin....");
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
+//    self.player.shouldAutoplay = YES;
+//    NSLog(@"zdg: video loading begin....");
+    __weak __typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        [(IJKFFMoviePlayerController * )weakSelf.player replaceCurrentItem: @"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L2-1_s.mp4"];
+        [weakSelf.player prepareToPlay];
+        [weakSelf.player play];
     });
     
     
@@ -106,11 +108,11 @@
 //        [NSRunLoop.mainRunLoop runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.03]];
 //        [self.player play];
 //    }
-    __weak __typeof(self) weakSelf = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [weakSelf.player shutdown];
-        [weakSelf circlePlay];
-    });
+//    __weak __typeof(self) weakSelf = self;
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        [weakSelf.player shutdown];
+//        [weakSelf circlePlay];
+//    });
 }
 
 - (void) circlePlay {
@@ -119,27 +121,21 @@
     self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.player.view.frame = self.view.bounds;
     self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
-    self.player.shouldAutoplay = YES;
+    self.player.shouldAutoplay = NO;
     [self.player prepareToPlay];
-    [self.player play];
-    self.player.shouldAutoplay = YES;
-    NSLog(@"zdg: video loading begin....");
-    self.view.autoresizesSubviews = YES;
-    [self.view addSubview:self.player.view];
-    [self.view addSubview:self.mediaControl];
     
     self.mediaControl.delegatePlayer = self.player;
     __weak __typeof(self) weakSelf = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        [weakSelf.player.view removeFromSuperview];
-        NSLog(@"current time:  %f", [weakSelf.player currentPlaybackTime]);
-        [weakSelf.player shutdown];
-//        id x = weakSelf.player.view;
-//        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//            [x removeFromSuperview];
-//        });
-        [weakSelf circlePlay];
-    });
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+////        [weakSelf.player.view removeFromSuperview];
+//        NSLog(@"current time:  %f", [weakSelf.player currentPlaybackTime]);
+//        [weakSelf.player shutdown];
+////        id x = weakSelf.player.view;
+////        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+////            [x removeFromSuperview];
+////        });
+//        [weakSelf circlePlay];
+//    });
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -202,6 +198,12 @@
 
 - (IBAction)onClickPlay:(id)sender
 {
+//    [self.player play];
+    self.player.shouldAutoplay = YES;
+    NSLog(@"zdg: video loading begin....");
+    self.view.autoresizesSubviews = YES;
+    [self.view addSubview:self.player.view];
+    [self.view addSubview:self.mediaControl];
     [self.player play];
     [self.mediaControl refreshMediaControl];
 }
@@ -252,7 +254,7 @@
         NSLog(@"loadStateDidChange: IJKMPMovieLoadStatePlaythroughOK: %d\n", (int)loadState);
         
         if (self.player.shouldAutoplay == YES) {
-//            [self.player play];
+            [self.player play];
 //            if (x == 0) {
             NSLog(@"zdg: video loading end....");
 //                x ++;
