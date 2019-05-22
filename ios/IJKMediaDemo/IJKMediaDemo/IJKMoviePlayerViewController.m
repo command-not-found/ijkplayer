@@ -79,17 +79,17 @@
     self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.player.view.frame = self.view.bounds;
     self.player.scalingMode = IJKMPMovieScalingModeAspectFit;
-    self.player.shouldAutoplay = YES;
+    self.player.shouldAutoplay = NO;
     [self.player prepareToPlay];
     [self.player play];
 //    self.player.shouldAutoplay = YES;
 //    NSLog(@"zdg: video loading begin....");
     __weak __typeof(self) weakSelf = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        [(IJKFFMoviePlayerController * )weakSelf.player replaceCurrentItem: @"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L2-1_s.mp4"];
-        [weakSelf.player prepareToPlay];
-        [weakSelf.player play];
-    });
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+////        [(IJKFFMoviePlayerController * )weakSelf.player replaceCurrentItem: @"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L2-1_s.mp4"];
+//        [weakSelf.player prepareToPlay];
+//        [weakSelf.player play];
+//    });
     
     
 //    self.player1 = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
@@ -100,6 +100,10 @@
     self.view.autoresizesSubviews = YES;
     [self.view addSubview:self.player.view];
     [self.view addSubview:self.mediaControl];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        NSLog(@"zdg: playableDuration: %lf", [self.player playableDuration]);
+    });
 
     self.mediaControl.delegatePlayer = self.player;
     

@@ -28,6 +28,17 @@
 #include "ijksdl/ios/ijksdl_ios.h"
 #include "ijksdl/ijksdl_gles2.h"
 
+static inline void mainSafeSync(dispatch_block_t block) {
+    if (block == nil) return;
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            block();
+        });
+    }
+}
+
 typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
     IJKSDLGLViewApplicationUnknownState = 0,
     IJKSDLGLViewApplicationForegroundState = 1,
@@ -338,8 +349,18 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
         if (_didSetupGL == NO)
             return;
         
-        if ([self isApplicationActive] == NO)
+        __block CALayer *layer = nil;
+        __block BOOL isApplicationActive = NO;
+        mainSafeSync(^{
+            layer = self.layer;
+            isApplicationActive = [self isApplicationActive];
+        });
+        if (isApplicationActive == NO) {
             return;
+        }
+        if (layer == nil) {
+            return;
+        }
         
         if (![self tryLockGLActive]) {
             if (0 == (_tryLockErrorCount % 100)) {
@@ -353,24 +374,25 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
         if (_context && !_didStopGL) {
             EAGLContext *prevContext = [EAGLContext currentContext];
             [EAGLContext setCurrentContext:_context];
-            [self displayInternal:overlay];
+            [self displayInternal:overlay layer: layer];
             [EAGLContext setCurrentContext:prevContext];
         }
         
         [self unlockGLActive];
     };
+    displayBlock();
 
-    if ([NSThread isMainThread]) {
-        displayBlock();
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            displayBlock();
-        });
-    }
+//    if ([NSThread isMainThread]) {
+//        displayBlock();
+//    } else {
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            displayBlock();
+//        });
+//    }
 }
 
 // NOTE: overlay could be NULl
-- (void)displayInternal: (SDL_VoutOverlay *) overlay
+- (void)displayInternal: (SDL_VoutOverlay *) overlay layer: (CALayer *) layer
 {
     if (![self setupRenderer:overlay]) {
         if (!overlay && !_renderer) {
@@ -380,15 +402,16 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
         }
         return;
     }
-
-    [[self eaglLayer] setContentsScale:_scaleFactor];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[self eaglLayer] setContentsScale:_scaleFactor];
+    });
 
     if (_isRenderBufferInvalidated) {
         NSLog(@"IJKSDLGLView: renderbufferStorage fromDrawable\n");
         _isRenderBufferInvalidated = NO;
 
         glBindRenderbuffer(GL_RENDERBUFFER, _renderbuffer);
-        [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)self.layer];
+        [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer*)layer];
         glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &_backingWidth);
         glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
         IJK_GLES2_Renderer_setGravity(_renderer, _rendererGravity, _backingWidth, _backingHeight);
