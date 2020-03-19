@@ -22,7 +22,7 @@
 @interface IJKVideoViewController : UIViewController<IJKFFMoviePlayerControllerDelegate>
 
 @property(atomic,strong) NSURL *url;
-@property(atomic, retain) id<IJKMediaPlayback> player;
+@property(atomic, strong) IJKFFMoviePlayerController * player;
 @property(atomic, retain) id<IJKMediaPlayback> player1;
 
 - (id)initWithURL:(NSURL *)url;

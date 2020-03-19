@@ -400,6 +400,30 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
     ijkmp_prepare_async(_mediaPlayer);
 }
 
+- (void)setVideoUrlString:(NSString *)videoUrlString {
+    if (videoUrlString == NULL || videoUrlString.length < 0) {
+        return;
+    }
+    IjkMediaPlayer * prePlayer = _mediaPlayer;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        if (prePlayer != NULL) {
+            ijkmp_stop(prePlayer);
+            ijkmp_shutdown(prePlayer);
+        }
+    });
+    _mediaPlayer = ijkmp_ios_create(media_player_msg_loop);
+    ijkmp_ios_set_glview(_mediaPlayer, _glView);
+
+    ijkmp_set_option(_mediaPlayer, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
+    _urlString = videoUrlString;
+
+    ijkmp_set_data_source(_mediaPlayer, [_urlString UTF8String]);
+    ijkmp_set_option(_mediaPlayer, IJKMP_OPT_CATEGORY_FORMAT, "safe", "0"); // for concat demuxer
+
+    _monitor.prepareStartTick = (int64_t)SDL_GetTickHR();
+    ijkmp_prepare_async(_mediaPlayer);
+}
+
 - (void)setHudUrl:(NSString *)urlString
 {
     if ([[NSThread currentThread] isMainThread]) {

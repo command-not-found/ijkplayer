@@ -101,6 +101,14 @@
     [self.view addSubview:self.player.view];
     [self.view addSubview:self.mediaControl];
     
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        [self.player stop];
+//        self.player.videoUrlString = @"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L5-1_s.mp4";
+//        [self.player play];
+//    });
+    
+    [self testSetVideoUrl];
+    
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         NSLog(@"zdg: playableDuration: %lf", [self.player playableDuration]);
     });
@@ -117,6 +125,15 @@
 //        [weakSelf.player shutdown];
 //        [weakSelf circlePlay];
 //    });
+}
+
+- (void) testSetVideoUrl {
+    NSString *videoUrl = [NSString stringWithFormat:@"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L%d-1_s.mp4", arc4random() % 10 + 1];
+    NSLog(@"zdg url: %@", videoUrl);
+    self.player.videoUrlString = videoUrl;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self testSetVideoUrl];
+    });
 }
 
 - (void) circlePlay {

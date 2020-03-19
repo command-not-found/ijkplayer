@@ -796,3 +796,9 @@ int ijkmp_get_msg(IjkMediaPlayer *mp, AVMessage *msg, int block)
 
     return -1;
 }
+
+void ijkmp_reset_state(IjkMediaPlayer *mp) {
+    pthread_mutex_lock(&mp->mutex);
+    mp->ffplayer->is = NULL;
+    pthread_mutex_unlock(&mp->mutex);
+}

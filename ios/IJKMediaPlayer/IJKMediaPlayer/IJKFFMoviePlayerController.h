@@ -118,6 +118,7 @@ typedef enum IJKLogLevel {
 @property(nonatomic, readonly) CGFloat fpsAtOutput;
 @property(nonatomic) BOOL shouldShowHudView;
 @property(nonatomic, weak) id<IJKFFMoviePlayerControllerDelegate> delegate;
+@property(nonatomic, strong) NSString *videoUrlString;
 
 - (void)setOptionValue:(NSString *)value
                 forKey:(NSString *)key
