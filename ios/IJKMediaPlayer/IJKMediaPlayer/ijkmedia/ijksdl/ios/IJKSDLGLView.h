@@ -30,6 +30,8 @@
 
 @interface IJKSDLGLView : UIView <IJKSDLGLViewProtocol>
 
+@property(nonatomic, assign) CVPixelBufferRef pixel_buffer;
+
 - (id) initWithFrame:(CGRect)frame;
 - (void) display: (SDL_VoutOverlay *) overlay;
 

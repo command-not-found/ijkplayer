@@ -34,6 +34,25 @@
 #import "ijkioapplication.h"
 #include "string.h"
 
+
+@interface IJKPlayerWrap : NSObject
+@property (nonatomic, assign) IjkMediaPlayer *value;
+@end
+
+@implementation IJKPlayerWrap
+
+- (instancetype)initWith: (IjkMediaPlayer *)value;
+{
+    self = [super init];
+    if (self) {
+        _value = value;
+    }
+    return self;
+}
+
+@end
+
+
 static const char *kIJKFFRequiredFFmpegVersion = "ff3.4--ijk0.8.7--20180103--001";
 
 // It means you didn't call shutdown if you found this object leaked.
@@ -45,7 +64,9 @@ static const char *kIJKFFRequiredFFmpegVersion = "ff3.4--ijk0.8.7--20180103--001
 @end
 
 @interface IJKFFMoviePlayerController()
-
+@property (nonatomic, strong) NSMutableDictionary *videoMap;
+@property (nonatomic, strong) NSMutableArray<IJKPlayerWrap *> *videoList;
+@property (nonatomic, strong) NSMutableArray<NSString *> *videoUrlStringList;
 @end
 
 @implementation IJKFFMoviePlayerController {
@@ -124,7 +145,7 @@ void IJKFFIOStatDebugCallback(const char *url, int type, int bytes)
     if (s_ff_io_stat_bytes < s_ff_io_stat_check_points ||
         s_ff_io_stat_bytes > s_ff_io_stat_check_points + FFP_IO_STAT_STEP) {
         s_ff_io_stat_check_points = s_ff_io_stat_bytes;
-        NSLog(@"io-stat: %s, +%d = %"PRId64"\n", url, bytes, s_ff_io_stat_bytes);
+        NSLog(@"io-stat: %s, +%d = %" PRId64"\n", url, bytes, s_ff_io_stat_bytes);
     }
 }
 
@@ -143,7 +164,7 @@ void IJKFFIOStatCompleteDebugCallback(const char *url,
     if (!av_strstart(url, "http:", NULL))
         return;
 
-    NSLog(@"io-stat-complete: %s, %"PRId64"/%"PRId64", %"PRId64"/%"PRId64"\n",
+    NSLog(@"io-stat-complete: %s, %" PRId64"/%"PRId64", %"PRId64"/%"PRId64"\n",
           url, read_bytes, total_size, elpased_time, total_duration);
 }
 
@@ -154,6 +175,8 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
     ijkmp_io_stat_complete_register(cb);
 }
 
+dispatch_queue_t _video_queue;
+
 - (id)initWithContentURL:(NSURL *)aUrl
              withOptions:(IJKFFOptions *)options
 {
@@ -162,7 +185,11 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
 
     // Detect if URL is file path and return proper string for it
     NSString *aUrlString = [aUrl isFileURL] ? [aUrl path] : [aUrl absoluteString];
-
+    
+    _videoMap = [[NSMutableDictionary alloc] init];
+    _videoList = [[NSMutableArray alloc] init];
+    _video_queue = dispatch_queue_create("video.append.queue", NULL);
+    _videoUrlStringList = [[NSMutableArray alloc] init];
     return [self initWithContentURLString:aUrlString
                               withOptions:options];
 }
@@ -219,26 +246,26 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
         _glView = [[IJKSDLGLView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         _glView.isThirdGLView = NO;
         _view = _glView;
-//        _hudViewController = [[IJKSDLHudViewController alloc] init];
-//        [_hudViewController setRect:_glView.frame];
-//        _shouldShowHudView = NO;
-//        _hudViewController.tableView.hidden = YES;
-//        [_view addSubview:_hudViewController.tableView];
+        _hudViewController = [[IJKSDLHudViewController alloc] init];
+        [_hudViewController setRect:_glView.frame];
+        _shouldShowHudView = NO;
+        _hudViewController.tableView.hidden = YES;
+        [_view addSubview:_hudViewController.tableView];
 
-//        [self setHudValue:nil forKey:@"scheme"];
-//        [self setHudValue:nil forKey:@"host"];
-//        [self setHudValue:nil forKey:@"path"];
-//        [self setHudValue:nil forKey:@"ip"];
-//        [self setHudValue:nil forKey:@"tcp-info"];
-//        [self setHudValue:nil forKey:@"http"];
-//        [self setHudValue:nil forKey:@"tcp-spd"];
-//        [self setHudValue:nil forKey:@"t-prepared"];
-//        [self setHudValue:nil forKey:@"t-render"];
-//        [self setHudValue:nil forKey:@"t-preroll"];
-//        [self setHudValue:nil forKey:@"t-http-open"];
-//        [self setHudValue:nil forKey:@"t-http-seek"];
-//
-//        self.shouldShowHudView = options.showHudView;
+        [self setHudValue:nil forKey:@"scheme"];
+        [self setHudValue:nil forKey:@"host"];
+        [self setHudValue:nil forKey:@"path"];
+        [self setHudValue:nil forKey:@"ip"];
+        [self setHudValue:nil forKey:@"tcp-info"];
+        [self setHudValue:nil forKey:@"http"];
+        [self setHudValue:nil forKey:@"tcp-spd"];
+        [self setHudValue:nil forKey:@"t-prepared"];
+        [self setHudValue:nil forKey:@"t-render"];
+        [self setHudValue:nil forKey:@"t-preroll"];
+        [self setHudValue:nil forKey:@"t-http-open"];
+        [self setHudValue:nil forKey:@"t-http-seek"];
+
+        self.shouldShowHudView = options.showHudView;
 
         ijkmp_ios_set_glview(_mediaPlayer, _glView);
         ijkmp_set_option(_mediaPlayer, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
@@ -413,7 +440,8 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
     });
     _mediaPlayer = ijkmp_ios_create(media_player_msg_loop);
     ijkmp_ios_set_glview(_mediaPlayer, _glView);
-
+    
+    ijkmp_set_weak_thiz(_mediaPlayer, (__bridge_retained void *) self);
     ijkmp_set_option(_mediaPlayer, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
     _urlString = videoUrlString;
 
@@ -422,6 +450,81 @@ void IJKFFIOStatCompleteRegister(void (*cb)(const char *url,
 
     _monitor.prepareStartTick = (int64_t)SDL_GetTickHR();
     ijkmp_prepare_async(_mediaPlayer);
+    ijkmp_start(_mediaPlayer);
+}
+
+
+-(void)appendVideoItem: (NSString *)videoUrlString {
+    if (videoUrlString == NULL || videoUrlString.length < 0) {
+        return;
+    }
+    dispatch_async(_video_queue, ^{
+        [_videoUrlStringList addObject:videoUrlString];
+//        IjkMediaPlayer *player = ijkmp_ios_create(media_player_msg_loop);
+//        ijkmp_ios_set_glview(player, _glView);
+//        ijkmp_set_option(player, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
+//        ijkmp_set_data_source(player, [videoUrlString UTF8String]);
+//        ijkmp_set_option(player, IJKMP_OPT_CATEGORY_FORMAT, "safe", "0"); // for concat demuxer
+//        ijkmp_set_option_int(player, IJKMP_OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
+//        ijkmp_prepare_async(player);
+//        
+//        IJKPlayerWrap *playerWrap = [[IJKPlayerWrap alloc] initWith:player];
+//        [_videoList addObject: playerWrap];
+    });
+}
+
+- (void)findNextVideoAndPlay {
+    if (_videoUrlStringList.count <= 0) {
+        return;
+    }
+    dispatch_async(_video_queue, ^{
+        BOOL find = NO;
+//        for (int i = 0; i < _videoList.count; ++ i) {
+//            if (_videoList[i].value == _mediaPlayer) {
+//                find = YES;
+//                IjkMediaPlayer * prePlayer = _mediaPlayer;
+//                dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//                    if (prePlayer != NULL) {
+//                        ijkmp_stop(prePlayer);
+//                        ijkmp_shutdown(prePlayer);
+//                    }
+//                });
+//
+//                if (i + 1 < _videoList.count) {
+//                    _mediaPlayer = _videoList[i + 1].value;
+//                    [_videoList removeObjectAtIndex:i];
+//                    ijkmp_start(_mediaPlayer);
+//                }
+//                break;
+//            }
+//        }
+//        if (!find) {
+//            IjkMediaPlayer * prePlayer = _mediaPlayer;
+//            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//                if (prePlayer != NULL) {
+//                    ijkmp_stop(prePlayer);
+//                    ijkmp_shutdown(prePlayer);
+//                }
+//            });
+//
+//            _mediaPlayer = _videoList[0].value;
+//            ijkmp_set_weak_thiz(_mediaPlayer, (__bridge_retained void *) self);
+//            ijkmp_ios_set_glview(_mediaPlayer, _glView);
+//            ijkmp_start(_mediaPlayer);
+//        }
+        
+        for (int i = 0; i < _videoUrlStringList.count; ++ i) {
+            if ([_urlString isEqualToString:_videoUrlStringList[i]]) {
+                if (i + 1 < _videoUrlStringList.count) {
+                    find = YES;
+                    self.videoUrlString = _videoUrlStringList[i + 1];
+                }
+            }
+        }
+        if (!find) {
+            self.videoUrlString = _videoUrlStringList[0];
+        }
+    });
 }
 
 - (void)setHudUrl:(NSString *)urlString
@@ -874,12 +977,12 @@ inline static NSString *formatedSpeed(int64_t bytes, int64_t elapsed_milli) {
     int64_t acached = ijkmp_get_property_int64(_mediaPlayer, FFP_PROP_INT64_AUDIO_CACHED_DURATION, 0);
     int64_t vcachep = ijkmp_get_property_int64(_mediaPlayer, FFP_PROP_INT64_VIDEO_CACHED_PACKETS, 0);
     int64_t acachep = ijkmp_get_property_int64(_mediaPlayer, FFP_PROP_INT64_AUDIO_CACHED_PACKETS, 0);
-    [self setHudValue:[NSString stringWithFormat:@"%@, %@, %"PRId64" packets",
+    [self setHudValue:[NSString stringWithFormat:@"%@, %@, %" PRId64" packets",
                           formatedDurationMilli(vcached),
                           formatedSize(vcacheb),
                           vcachep]
                   forKey:@"v-cache"];
-    [self setHudValue:[NSString stringWithFormat:@"%@, %@, %"PRId64" packets",
+    [self setHudValue:[NSString stringWithFormat:@"%@, %@, %" PRId64" packets",
                           formatedDurationMilli(acached),
                           formatedSize(acacheb),
                           acachep]
@@ -1755,6 +1858,11 @@ static int ijkff_inject_callback(void *opaque, int message, void *data, size_t d
                              selector:@selector(applicationWillTerminate)
                                  name:UIApplicationWillTerminateNotification
                                object:nil];
+    
+    [_notificationManager addObserver:self
+                             selector:@selector(videoPlaybackDidFinish:)
+                                 name:IJKMPMoviePlayerPlaybackDidFinishNotification
+                               object:nil];
 }
 
 - (void)unregisterApplicationObservers
@@ -1830,6 +1938,11 @@ static int ijkff_inject_callback(void *opaque, int message, void *data, size_t d
             [self pause];
         }
     });
+}
+
+- (void)videoPlaybackDidFinish:(NSNotification *)notification
+{
+    [self findNextVideoAndPlay];
 }
 
 #pragma mark IJKFFHudController

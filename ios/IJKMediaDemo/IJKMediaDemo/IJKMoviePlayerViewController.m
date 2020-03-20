@@ -75,6 +75,7 @@
 
     IJKFFOptions *options = [IJKFFOptions optionsByDefault];
     
+    self.url = [NSURL URLWithString:@"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L5-1_s.mp4"];
     self.player = [[IJKFFMoviePlayerController alloc] initWithContentURL:self.url withOptions:options];
     self.player.view.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.player.view.frame = self.view.bounds;
@@ -107,7 +108,8 @@
 //        [self.player play];
 //    });
     
-    [self testSetVideoUrl];
+//    [self testSetVideoUrl];
+    [self testAppendVideoUrl];
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(30 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         NSLog(@"zdg: playableDuration: %lf", [self.player playableDuration]);
@@ -134,6 +136,17 @@
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self testSetVideoUrl];
     });
+}
+
+- (void) testAppendVideoUrl {
+    NSString *videoUrl = [NSString stringWithFormat:@"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L%d-1_s.mp4", arc4random() % 20 + 1];
+    self.player.videoUrlString = videoUrl;
+    for (int i = 0; i < 5; ++ i) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+           NSString *videoUrl = [NSString stringWithFormat:@"https://courses-1256571289.cos.ap-beijing.myqcloud.com/level1/unit1/lesson1/1540281594/video/L%d-1_s.mp4", arc4random() % 20 + 1];
+            [self.player appendVideoItem:videoUrl];
+        });
+    }
 }
 
 - (void) circlePlay {

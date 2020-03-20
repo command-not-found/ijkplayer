@@ -381,7 +381,6 @@ typedef NS_ENUM(NSInteger, IJKSDLGLViewApplicationState) {
         [self unlockGLActive];
     };
     displayBlock();
-
 //    if ([NSThread isMainThread]) {
 //        displayBlock();
 //    } else {
