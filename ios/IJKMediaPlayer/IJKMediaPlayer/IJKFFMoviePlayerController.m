@@ -460,16 +460,17 @@ dispatch_queue_t _video_queue;
     }
     dispatch_async(_video_queue, ^{
         [_videoUrlStringList addObject:videoUrlString];
-//        IjkMediaPlayer *player = ijkmp_ios_create(media_player_msg_loop);
-//        ijkmp_ios_set_glview(player, _glView);
-//        ijkmp_set_option(player, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
-//        ijkmp_set_data_source(player, [videoUrlString UTF8String]);
-//        ijkmp_set_option(player, IJKMP_OPT_CATEGORY_FORMAT, "safe", "0"); // for concat demuxer
-//        ijkmp_set_option_int(player, IJKMP_OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
-//        ijkmp_prepare_async(player);
-//        
-//        IJKPlayerWrap *playerWrap = [[IJKPlayerWrap alloc] initWith:player];
-//        [_videoList addObject: playerWrap];
+        IjkMediaPlayer *player = ijkmp_ios_create(media_player_msg_loop);
+        ijkmp_set_weak_thiz(player, (__bridge_retained void *) self);
+        ijkmp_ios_set_glview(player, _glView);
+        ijkmp_set_option(player, IJKMP_OPT_CATEGORY_PLAYER, "overlay-format", "fcc-_es2");
+        ijkmp_set_data_source(player, [videoUrlString UTF8String]);
+        ijkmp_set_option(player, IJKMP_OPT_CATEGORY_FORMAT, "safe", "0"); // for concat demuxer
+        ijkmp_set_option_int(player, IJKMP_OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
+        ijkmp_prepare_async(player);
+        
+        IJKPlayerWrap *playerWrap = [[IJKPlayerWrap alloc] initWith:player];
+        [_videoList addObject: playerWrap];
     });
 }
 
@@ -479,51 +480,51 @@ dispatch_queue_t _video_queue;
     }
     dispatch_async(_video_queue, ^{
         BOOL find = NO;
-//        for (int i = 0; i < _videoList.count; ++ i) {
-//            if (_videoList[i].value == _mediaPlayer) {
-//                find = YES;
-//                IjkMediaPlayer * prePlayer = _mediaPlayer;
-//                dispatch_async(dispatch_get_global_queue(0, 0), ^{
-//                    if (prePlayer != NULL) {
-//                        ijkmp_stop(prePlayer);
-//                        ijkmp_shutdown(prePlayer);
-//                    }
-//                });
-//
-//                if (i + 1 < _videoList.count) {
-//                    _mediaPlayer = _videoList[i + 1].value;
-//                    [_videoList removeObjectAtIndex:i];
-//                    ijkmp_start(_mediaPlayer);
-//                }
-//                break;
-//            }
-//        }
-//        if (!find) {
-//            IjkMediaPlayer * prePlayer = _mediaPlayer;
-//            dispatch_async(dispatch_get_global_queue(0, 0), ^{
-//                if (prePlayer != NULL) {
-//                    ijkmp_stop(prePlayer);
-//                    ijkmp_shutdown(prePlayer);
-//                }
-//            });
-//
-//            _mediaPlayer = _videoList[0].value;
-//            ijkmp_set_weak_thiz(_mediaPlayer, (__bridge_retained void *) self);
-//            ijkmp_ios_set_glview(_mediaPlayer, _glView);
-//            ijkmp_start(_mediaPlayer);
-//        }
-        
-        for (int i = 0; i < _videoUrlStringList.count; ++ i) {
-            if ([_urlString isEqualToString:_videoUrlStringList[i]]) {
-                if (i + 1 < _videoUrlStringList.count) {
-                    find = YES;
-                    self.videoUrlString = _videoUrlStringList[i + 1];
+        for (int i = 0; i < _videoList.count; ++ i) {
+            if (_videoList[i].value == _mediaPlayer) {
+                find = YES;
+                IjkMediaPlayer * prePlayer = _mediaPlayer;
+                dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                    if (prePlayer != NULL) {
+                        ijkmp_stop(prePlayer);
+                        ijkmp_shutdown(prePlayer);
+                    }
+                });
+
+                if (i + 1 < _videoList.count) {
+                    _mediaPlayer = _videoList[i + 1].value;
+                    [_videoList removeObjectAtIndex:i];
+                    ijkmp_start(_mediaPlayer);
                 }
+                break;
             }
         }
         if (!find) {
-            self.videoUrlString = _videoUrlStringList[0];
+            IjkMediaPlayer * prePlayer = _mediaPlayer;
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                if (prePlayer != NULL) {
+                    ijkmp_stop(prePlayer);
+                    ijkmp_shutdown(prePlayer);
+                }
+            });
+
+            _mediaPlayer = _videoList[0].value;
+            ijkmp_set_weak_thiz(_mediaPlayer, (__bridge_retained void *) self);
+            ijkmp_ios_set_glview(_mediaPlayer, _glView);
+            ijkmp_start(_mediaPlayer);
         }
+        
+//        for (int i = 0; i < _videoUrlStringList.count; ++ i) {
+//            if ([_urlString isEqualToString:_videoUrlStringList[i]]) {
+//                if (i + 1 < _videoUrlStringList.count) {
+//                    find = YES;
+//                    self.videoUrlString = _videoUrlStringList[i + 1];
+//                }
+//            }
+//        }
+//        if (!find) {
+//            self.videoUrlString = _videoUrlStringList[0];
+//        }
     });
 }
 
@@ -1482,6 +1483,8 @@ int media_player_msg_loop(void* arg)
     @autoreleasepool {
         IjkMediaPlayer *mp = (IjkMediaPlayer*)arg;
         __weak IJKFFMoviePlayerController *ffpController = ffplayerRetain(ijkmp_set_weak_thiz(mp, NULL));
+        
+//        __weak IJKFFMoviePlayerController *ffpController = ffplayerRetain(ijkmp_get_weak_thiz(mp));
         while (ffpController) {
             @autoreleasepool {
                 IJKFFMoviePlayerMessage *msg = [ffpController obtainMessage];
