@@ -436,6 +436,7 @@ dispatch_queue_t _video_queue;
         if (prePlayer != NULL) {
             ijkmp_stop(prePlayer);
             ijkmp_shutdown(prePlayer);
+            ijkmp_dec_ref(prePlayer);
         }
     });
     _mediaPlayer = ijkmp_ios_create(media_player_msg_loop);
